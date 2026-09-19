@@ -17,19 +17,28 @@ const forbidden = [
   ['성적·모의고사', /모의고사|전국연합학력평가|석차|백분위|등급|원점수/, '모의고사·전국연합학력평가 성적 등 성적 관련 내용은 기재할 수 없습니다.'],
   ['온라인 공개강좌', /K-?MOOC|MOOC|KOCW/i, 'K-MOOC, MOOC, KOCW 관련 내용은 기재할 수 없습니다.'],
   ['방과후학교', /방과후/, '방과후학교 활동은 기재할 수 없습니다.'],
-  ['교외 실적', /교외s*(수상|상|활동)|해외s*(연수|봉사|활동)/, '교외 수상 또는 해외 활동 실적은 기재할 수 없습니다.'],
+  ['교외 실적', /교외\s*(수상|상|활동)|해외\s*(연수|봉사|활동)/, '교외 수상 또는 해외 활동 실적은 기재할 수 없습니다.'],
   ['장학 내용', /장학금|장학생/, '장학금·장학생 관련 내용은 기재할 수 없습니다.'],
   ['지식재산권', /특허|실용신안|상표권|디자인권/, '지식재산권 출원·등록 사실은 기재할 수 없습니다.'],
-  ['도서 출간', /도서s*출간|책을s*출간|출판/, '도서 출간 사실은 기재할 수 없습니다.']
+  ['도서 출간', /도서\s*출간|책을\s*출간|출판/, '도서 출간 사실은 기재할 수 없습니다.']
+];
+const spellingRules = [
+  ['할수있는', '할 수 있는', '의존 명사 ‘수’는 띄어 씁니다.'], ['될수있는', '될 수 있는', '의존 명사 ‘수’는 띄어 씁니다.'],
+  ['할수', '할 수', '의존 명사 ‘수’는 띄어 씁니다.'], ['될수', '될 수', '의존 명사 ‘수’는 띄어 씁니다.'],
+  ['뿐만아니라', '뿐만 아니라', '보조사 ‘뿐’과 ‘아니다’는 띄어 씁니다.'], ['하였습니다', '함', '생기부 서술형은 현재형·명사형으로 다듬어 볼 수 있습니다.'],
+  ['하였음', '함', '생기부 서술형은 현재형·명사형으로 다듬어 볼 수 있습니다.'], ['되었습니다', '됨', '생기부 서술형은 현재형·명사형으로 다듬어 볼 수 있습니다.']
 ];
 
 function bytes(text) { return new TextEncoder().encode(text).length; }
 function updateCounter() { const p=profiles[$('#section').value], count=entry.value.length, byte=bytes(entry.value); $('#counter').textContent=`${count}자 · ${byte} Byte${p.limit ? ` / ${p.limit} Byte` : ''}`; $('#counter').className=byte>p.limit?'over':''; }
 function updateGuide() { const p=profiles[$('#section').value]; $('#guide-title').textContent=p.title; $('#guide-text').textContent=p.text; $('#good-example').textContent=`“${p.good.replaceAll('“','').replaceAll('”','')}”`; $('#bad-example').textContent=p.bad; updateCounter(); }
 function item(kind,title,text) { return `<div class="issue ${kind}"><i>${kind==='warn'?'!':'i'}</i><div><b>${title}</b><p>${text}</p></div></div>`; }
+function spellingCheck(text) { const findings=[]; spellingRules.forEach(([before,after,reason])=>{let start=0,index;while((index=text.indexOf(before,start))!==-1){findings.push({before,after,reason,index});start=index+before.length;}}); return findings.sort((a,b)=>a.index-b.index); }
+function recommendation(section,text) { const templates={subject:['관찰 행동을 넣어 다듬기','“[단원·활동]에서 [구체적 행동]을 수행하고, [과정 또는 결과]를 [관찰 가능한 행동]으로 보여 줌.”'],behavior:['변화 과정을 넣어 다듬기','“[상황]에서 [구체적 행동]을 보임. [시기]를 거치며 [변화·성장]하는 모습을 보임.”'],reading:['입력 형식으로 다듬기','“도서명(저자명)” 형식으로만 입력합니다. 감상이나 평가는 다른 영역의 실제 활동과 연계해 검토합니다.'],volunteer:['객관적 실적으로 다듬기','“[활동명] 활동”처럼 내용만 간략히 씁니다. 평가어와 감상은 제외합니다.'],autonomy:['역할과 행동을 넣어 다듬기','“[활동]에서 [역할]을 맡아 [구체적 행동]을 수행하고, [변화 또는 결과]를 보임.”'],club:['참여 과정을 넣어 다듬기','“[활동]에서 [탐구·실습 과정]을 수행하고, [근거 있는 결과 또는 태도]를 보임.”'],career:['탐색 과정을 넣어 다듬기','“[진로 탐색 활동]에서 [자료·경험]을 바탕으로 [구체적 탐색 행동]을 수행함.”'],common:['관찰 근거를 넣어 다듬기','“[상황]에서 [구체적 행동]을 수행하고, [결과 또는 변화]를 보임.”']}; return /매우|아주|훌륭|뛰어남|성격이 좋|성실한 태도/.test(text)?['추상적 평가를 행동으로 바꾸기','“모둠 토의에서 근거 자료를 비교하여 의견을 제시하고, 다른 의견을 반영해 해결안을 보완함.”처럼 실제 행동을 넣어 보세요.']:templates[section]; }
 function review() {
   const text=entry.value.trim(), section=$('#section').value, p=profiles[section], issues=[];
   if(!text){ alert('점검할 문장을 입력해 주세요.'); return; }
+  const spelling=spellingCheck(text);
   forbidden.forEach(([title,regex,message])=>{if(regex.test(text)) issues.push(item('warn',title,message));});
   if(bytes(text)>p.limit) issues.push(item('warn','입력 분량 초과',`현재 ${bytes(text)} Byte입니다. 이 영역의 기준 ${p.limit} Byte 안으로 줄여야 합니다.`));
   if(/[\n\r]/.test(text) && section==='subject') issues.push(item('warn','줄바꿈 확인','교과 세부능력 및 특기사항은 줄바꿈 없이 입력하는 기준입니다.'));
@@ -41,7 +50,9 @@ function review() {
   if(/매우|아주|훌륭|뛰어남|성격이 좋|성실한 태도/.test(text)) issues.push(item('info','관찰 근거 확인','평가어만 쓰기보다 어떤 상황에서 어떤 행동을 했는지 구체적인 관찰 근거를 덧붙여 보세요.'));
   if(!/[.。]$/.test(text)) issues.push(item('info','마침표 확인','창체 특기사항·세특·행동특성 및 종합의견은 문장 끝 마침표를 확인하세요.'));
   $('#idle').hidden=true; $('#report').hidden=false; $('#issues').innerHTML=issues.length?issues.join(''):item('info','자동 점검에서 뚜렷한 제한 표현을 찾지 못함','자동 검사는 보조 수단입니다. 아래 항목과 실제 누가기록을 함께 확인해 최종 판단하세요.');
-  $('#status-count').textContent=issues.length; $('#status-text').textContent=issues.filter(x=>x.includes('warn')).length?'수정 또는 근거 확인이 필요한 항목이 있습니다.':'자동 탐지된 금지 표현은 없거나 적습니다.';
+  $('#spelling-result').innerHTML=spelling.length?`<div class="spelling-head needs-fix">맞춤법·문장 표현 ${spelling.length}건 확인</div><ul class="spelling-list">${spelling.map(s=>`<li><small>${s.index+1}번째 글자 부근 · ${s.reason}</small><del>${s.before}</del><ins>→ ${s.after}</ins></li>`).join('')}</ul>`:'<div class="spelling-head">맞춤법·띄어쓰기에서 자동 탐지된 수정 항목이 없습니다</div>';
+  const [recTitle,recText]=recommendation(section,text); $('#recommendation-title').textContent=recTitle; $('#recommendation-text').textContent=recText;
+  $('#status-count').textContent=issues.length+spelling.length; $('#status-text').textContent=(issues.filter(x=>x.includes('warn')).length||spelling.length)?'수정 또는 근거 확인이 필요한 항목이 있습니다.':'자동 탐지된 금지 표현은 없거나 적습니다.';
   $('#manual-list').innerHTML=p.manual.map(v=>`<li>${v}</li>`).join('');
 }
 entry.addEventListener('input',updateCounter); $('#section').addEventListener('change',updateGuide); $('#review').addEventListener('click',review); $('#reset').addEventListener('click',()=>{entry.value='';$('#idle').hidden=false;$('#report').hidden=true;updateCounter();entry.focus();});

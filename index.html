@@ -8,6 +8,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .spelling-result{margin-top:13px}.spelling-head{display:flex;align-items:center;gap:7px;padding:9px 11px;background:#eef5f0;border-radius:4px;color:#4b7960;font-size:11px;font-weight:700}.spelling-head.needs-fix{background:#fff4e9;color:#bb6942}.spelling-list{margin:0;padding:0;list-style:none}.spelling-list li{padding:10px 1px;border-bottom:1px solid #ebe6dd;font-size:10px;line-height:1.6}.spelling-list small{display:block;color:#8b94a0}.spelling-list del{color:#b35748}.spelling-list ins{margin-left:7px;color:#397151;text-decoration:none;font-weight:700}.recommendation{display:flex;flex-direction:column;gap:5px;margin-top:16px;padding:12px 14px;border-left:2px solid #e4b64c;background:#fffcf4}.recommendation p{margin:0;color:#9c7621;font-size:10px;font-weight:700}.recommendation strong{font-size:11px}.recommendation span{color:#687687;font-size:10px;line-height:1.6}
+  </style>
 </head>
 <body>
   <main class="shell">
@@ -43,7 +46,9 @@
         <div id="idle" class="idle"><i>✓</i><strong>문장을 입력해 점검을 시작하세요</strong><small>금지 표현, 형식, 글자 수, 영역별 유의사항을 확인합니다.</small></div>
         <div id="report" hidden>
           <div class="summary"><div><b id="status-count">0</b><span>확인할 항목</span></div><p id="status-text"></p></div>
+          <div id="spelling-result" class="spelling-result"></div>
           <div id="issues" class="issues"></div>
+          <div class="recommendation"><p>추천 문구</p><strong id="recommendation-title"></strong><span id="recommendation-text"></span></div>
           <div class="check-title">직접 확인할 사항</div>
           <ul id="manual-list" class="manual-list"></ul>
         </div>
