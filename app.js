@@ -50,10 +50,11 @@ function review() {
   if(/매우|아주|훌륭|뛰어남|성격이 좋|성실한 태도/.test(text)) issues.push(item('info','관찰 근거 확인','평가어만 쓰기보다 어떤 상황에서 어떤 행동을 했는지 구체적인 관찰 근거를 덧붙여 보세요.'));
   if(!/[.。]$/.test(text)) issues.push(item('info','마침표 확인','창체 특기사항·세특·행동특성 및 종합의견은 문장 끝 마침표를 확인하세요.'));
   $('#idle').hidden=true; $('#report').hidden=false; $('#issues').innerHTML=issues.length?issues.join(''):item('info','자동 점검에서 뚜렷한 제한 표현을 찾지 못함','자동 검사는 보조 수단입니다. 아래 항목과 실제 누가기록을 함께 확인해 최종 판단하세요.');
-  $('#spelling-result').innerHTML=spelling.length?`<div class="spelling-head needs-fix">맞춤법·문장 표현 ${spelling.length}건 확인</div><ul class="spelling-list">${spelling.map(s=>`<li><small>${s.index+1}번째 글자 부근 · ${s.reason}</small><del>${s.before}</del><ins>→ ${s.after}</ins></li>`).join('')}</ul>`:'<div class="spelling-head">맞춤법·띄어쓰기에서 자동 탐지된 수정 항목이 없습니다</div>';
+  $('#spelling-result').innerHTML=spelling.length?`<div class="spelling-head needs-fix">맞춤법·문장 표현 ${spelling.length}건 확인</div><ul class="spelling-list">${spelling.map(s=>`<li><small>${s.index+1}번째 글자 부근 · ${s.reason}</small><div class="replacement"><del>기존 표현: ${s.before}</del><ins>권장 표현: ${s.after}</ins><button class="apply-fix" data-before="${s.before}" data-after="${s.after}">문장에 적용</button></div></li>`).join('')}</ul>`:'<div class="spelling-head">맞춤법·띄어쓰기에서 자동 탐지된 수정 항목이 없습니다</div>';
   const [recTitle,recText]=recommendation(section,text); $('#recommendation-title').textContent=recTitle; $('#recommendation-text').textContent=recText;
   $('#status-count').textContent=issues.length+spelling.length; $('#status-text').textContent=(issues.filter(x=>x.includes('warn')).length||spelling.length)?'수정 또는 근거 확인이 필요한 항목이 있습니다.':'자동 탐지된 금지 표현은 없거나 적습니다.';
   $('#manual-list').innerHTML=p.manual.map(v=>`<li>${v}</li>`).join('');
 }
 entry.addEventListener('input',updateCounter); $('#section').addEventListener('change',updateGuide); $('#review').addEventListener('click',review); $('#reset').addEventListener('click',()=>{entry.value='';$('#idle').hidden=false;$('#report').hidden=true;updateCounter();entry.focus();});
+$('#spelling-result').addEventListener('click',event=>{const button=event.target.closest('.apply-fix');if(!button)return;entry.value=entry.value.replace(button.dataset.before,button.dataset.after);updateCounter();review();entry.focus();});
 updateGuide();
